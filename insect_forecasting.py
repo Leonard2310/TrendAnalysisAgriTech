@@ -9,13 +9,13 @@ from datetime import datetime, timedelta
 from sklearn.preprocessing import StandardScaler
 
 # Configurazione della pagina Streamlit (deve essere la prima istruzione di Streamlit)
-st.set_page_config(page_title="Insect Capture Prediction", page_icon=":insect:", layout="wide")
+st.set_page_config(page_title="Insect Capture Prediction", page_icon=":beetle:", layout="wide")
 
 # Imposta il logger di TensorFlow per mostrare solo errori
 tf.get_logger().setLevel('ERROR')
 
 # Percorso del modello LSTM salvato
-model_path = 'Inserisci il modello LSTM salvato'
+model_path = 'Inserisci il percorso del modello'
 
 # Funzione per ottenere dati meteorologici storici
 def get_historical_weather_data(lat, lon, start_date, end_date, api_key):
@@ -75,7 +75,8 @@ if model is None:
 
 # Funzione per la previsione delle catture insetti
 def live_forecasting():
-    st.title("Live LSTM Insect Capture Forecasting")
+    st.title(":beetle: OpenBugsWeather")
+    st.subheader("Live LSTM Insect Capture Forecasting")
 
     # API Key di OpenWeatherMap
     api_key = st.text_input("Inserisci la tua API Key OpenWeatherMap", type="password")
