@@ -1,2 +1,1 @@
 # TrendAnalysis
-# GRODA
