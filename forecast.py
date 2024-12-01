@@ -9,11 +9,15 @@ from streamlit_folium import st_folium
 from sklearn.preprocessing import StandardScaler
 from utils import load_lstm_model, create_lagged_features, get_city_suggestions, get_historical_weather_data, get_weather_symbol
 import plotly.express as px
+from dotenv import load_dotenv
+import os
 
-# Chiave API di OpenWeatherMap
-owm_api_key = 'aeeebd2b3ac3430b6648e249d9861539'
-# Percorso del modello LSTM salvato
-model_path = '/Users/l.catello/Library/Mobile Documents/com~apple~CloudDocs/Magistrale Ingegneria Informatica/Information Systems and Business Intelligence/Progetto/Homework 2 - Trend Analysis e Dashboard Streamlit/WebApp/lstm_model.keras'
+# Carica le variabili dal file .env
+load_dotenv("key.env")
+
+# Utilizza le variabili
+owm_api_key = os.getenv("OWM_API_KEY")
+model_path = os.getenv("MODEL_PATH")
 
 # Configurazione della pagina Streamlit (deve essere la prima istruzione di Streamlit)
 st.set_page_config(page_title="Insect Capture Prediction", page_icon=":beetle:", layout="wide")

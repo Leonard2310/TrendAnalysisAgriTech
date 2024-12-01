@@ -4,9 +4,12 @@ import streamlit as st
 from tensorflow import keras
 from sklearn.preprocessing import StandardScaler
 from datetime import datetime, timedelta
+from dotenv import load_dotenv
 
-# Percorso del modello LSTM salvato
-model_path = '/Users/l.catello/Library/Mobile Documents/com~apple~CloudDocs/Magistrale Ingegneria Informatica/Information Systems and Business Intelligence/Progetto/Homework 2 - Trend Analysis e Dashboard Streamlit/WebApp/lstm_model.keras'
+# Carica le variabili dal file .env
+load_dotenv("key.env")
+
+model_path = os.getenv("MODEL_PATH")
 
 # Funzione per caricare il modello LSTM salvato
 @st.cache_resource
