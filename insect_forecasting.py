@@ -10,14 +10,55 @@ from sklearn.preprocessing import StandardScaler
 import folium
 from streamlit_folium import st_folium
 
+# Percorso del modello LSTM salvato
+model_path = 'path'
+
+# Chiave API di OpenWeatherMap
+owm_api_key = 'api'
+
 # Configurazione della pagina Streamlit (deve essere la prima istruzione di Streamlit)
 st.set_page_config(page_title="Insect Capture Prediction", page_icon=":beetle:", layout="wide")
 
+# Funzione per ottenere il meteo attuale
+def get_current_weather(city_name, api_key):
+    url = 'http://api.openweathermap.org/data/2.5/weather'
+    params = {
+        'q': city_name,
+        'appid': api_key,
+        'units': 'metric',
+        'lang': 'it'
+    }
+    response = requests.get(url, params=params)
+    if response.status_code == 200:
+        return response.json()
+    else:
+        return None
+
+# Funzione per mappare le condizioni meteo a simboli
+def get_weather_symbol(weather_id):
+    if weather_id // 100 == 2:
+        return '⛈️'  # Temporale
+    elif weather_id // 100 == 3:
+        return '🌦️'  # Pioviggine
+    elif weather_id // 100 == 5:
+        return '🌧️'  # Pioggia
+    elif weather_id // 100 == 6:
+        return '❄️'  # Neve
+    elif weather_id // 100 == 7:
+        return '🌫️'  # Nebbia
+    elif weather_id == 800:
+        return '☀️'  # Sereno
+    elif weather_id == 801:
+        return '🌤️'  # Poco nuvoloso
+    elif weather_id == 802:
+        return '⛅'   # Parzialmente nuvoloso
+    elif weather_id == 803 or weather_id == 804:
+        return '☁️'  # Nuvoloso
+    else:
+        return '🌡️'  # Altro
+
 # Imposta il logger di TensorFlow per mostrare solo errori
 tf.get_logger().setLevel('ERROR')
-
-# Percorso del modello LSTM salvato
-model_path = 'path'
 
 # Funzionet per ottenere dati meteorologici storici
 def get_historical_weather_data(lat, lon, start_date, end_date, api_key):
@@ -110,7 +151,6 @@ def live_forecasting():
                 st.write("Nessun suggerimento trovato. Utilizzando la città inserita.")
         else:
             city = None
-
         if city:
             st.write(f"Hai selezionato: {city}")
 
@@ -121,10 +161,93 @@ def live_forecasting():
         with col2:
             end_date = st.date_input("Data finale")
 
-        # Bottone per avviare la previsione
         if st.button("Ottieni previsioni catture insetti"):
-            st.write("Implementazione del modello di previsione...")
-            # Aggiungi qui il resto della logica per il modello
+            if api_key and city and start_date and end_date:
+                if start_date > end_date:
+                    st.error("La data iniziale deve essere precedente o uguale alla data finale.")
+                else:
+                    # Barra di progressione
+                    progress_bar = st.progress(0)
+                    status_text = st.empty()
+                    status_text.text("Inizio il recupero dei dati meteo...")
+
+                    # Ottieni latitudine e longitudine della città
+                    geocode_url = f"http://api.openweathermap.org/geo/1.0/direct"
+                    params = {
+                        'q': city,
+                        'limit': 1,
+                        'appid': api_key
+                    }
+                    try:
+                        response = requests.get(geocode_url, params=params)
+                        response.raise_for_status()
+                        data = response.json()
+                        if data:
+                            lat = data[0]['lat']
+                            lon = data[0]['lon']
+                        else:
+                            st.error(f"Impossibile trovare la città {city}.")
+                            lat, lon = None, None
+                    except requests.exceptions.RequestException as e:
+                        st.error(f"Errore di connessione: {e}")
+                        lat, lon = None, None
+                        
+                    if lat is not None and lon is not None:
+                        # Aggiorna la barra di progresso
+                        status_text.text("Recupero dei dati meteo in corso...")
+                        progress_bar.progress(50)
+
+                        # Ottieni i dati meteorologici storici
+                        weather_data = get_historical_weather_data(lat, lon, start_date, end_date, api_key)
+                        if weather_data:
+                            progress_bar.progress(75)
+                            status_text.text("Previsione in corso...")
+
+                            # Prepara i dati per il modello
+                            df = pd.DataFrame(weather_data)
+                            df['no. of Adult males'] = 0  # Aggiungi una colonna fittizia per il target
+
+                            # Crea le feature laggate
+                            n_lags = 5
+                            exog_cols = ['temperature', 'humidity']
+                            lagged_df = create_lagged_features(df, n_lags=n_lags, target_col='no. of Adult males', exog_cols=exog_cols)
+
+                            # Prepara i dati di input
+                            variables = ['no. of Adult males'] + exog_cols
+                            timestep_cols = []
+                            for t in range(n_lags):
+                                lag = n_lags - t
+                                cols = [f'{var}_lag_{lag}' for var in variables]
+                                timestep_cols.append(cols)
+
+                            X_list = [lagged_df[cols].values for cols in timestep_cols]
+                            input_data = np.stack(X_list, axis=1)
+
+                            # Scala i dati di input
+                            scaler = StandardScaler()
+                            n_samples, n_timesteps, n_features = input_data.shape
+                            input_data_reshaped = input_data.reshape(-1, n_features)
+                            input_data_scaled = scaler.fit_transform(input_data_reshaped).reshape(n_samples, n_timesteps, n_features)
+
+                            # Effettua le previsioni
+                            predictions = model.predict(input_data_scaled)
+
+                            # Arrotonda le previsioni e convertili in numeri interi
+                            predictions = np.clip(predictions, 0, None).round().astype(int)
+
+                            # Aggiungi le previsioni al DataFrame
+                            lagged_df['predictions'] = predictions.flatten()
+
+                            # Visualizza il grafico delle previsioni giornaliere
+                            st.line_chart(lagged_df.set_index('date')['predictions'])
+                            progress_bar.progress(100)
+                            status_text.text("Operazione completata!")
+                        else:
+                            st.error("Impossibile ottenere i dati meteo storici.")
+                    else:
+                        st.error("Impossibile determinare latitudine e longitudine per la città.")
+            else:
+                st.error("Per favore, inserisci tutti i campi richiesti.")
 
     with col_map:
         # Visualizzazione della mappa a destra
@@ -138,8 +261,7 @@ def live_forecasting():
                 if data:
                     lat, lon = data[0]['lat'], data[0]['lon']
                     city_map = folium.Map(location=[lat, lon], zoom_start=10)
-                    # Aggiungi il layer meteo di OpenWeatherMap
-                    owm_api_key = 'api key'  
+                    # Aggiungi il layer meteo di OpenWeatherMap 
                     weather_tiles = f"https://tile.openweathermap.org/map/precipitation_new/{{z}}/{{x}}/{{y}}.png?appid={owm_api_key}"
                     folium.TileLayer(
                         tiles=weather_tiles,
@@ -170,3 +292,28 @@ if page == "Live Forecasting":
     live_forecasting()
 elif page == "Grafici di Addestramento":
     training_graphs()
+
+# Richiedi il nome della città all'utente
+city_name = st.text_input('Inserisci il nome della città:', 'Roma')
+
+# Ottieni il meteo attuale
+weather = get_current_weather(city_name, owm_api_key)
+
+# Mostra la mappa (assicurati di aver creato la mappa `m` con Folium)
+m = folium.Map(location=[41.9028, 12.4964], zoom_start=12)  # Esempio per Roma
+st_folium(m, width=700, height=500)
+
+# Visualizza i dati meteo con st.metric sotto la mappa
+if weather:
+    temperature = weather['main']['temp']
+    weather_id = weather['weather'][0]['id']
+    description = weather['weather'][0]['description']
+    symbol = get_weather_symbol(weather_id)
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.metric(label="Temperatura", value=f"{temperature}°C")
+    with col2:
+        st.metric(label="Condizioni", value=f"{symbol} {description.capitalize()}")
+else:
+    st.write("Impossibile ottenere i dati meteo per la città specificata.")
