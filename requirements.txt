@@ -1,0 +1,12 @@
+keras==3.5.0
+streamlit
+requests
+pandas
+numpy
+tensorflow==2.16.2
+streamlit-folium
+folium
+scikit-learn
+plotly
+scikit-learn 
+python-dotenv 
