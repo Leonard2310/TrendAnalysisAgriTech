@@ -12,15 +12,15 @@ import plotly.express as px
 from dotenv import load_dotenv
 import os
 
+# Configurazione della pagina Streamlit (deve essere la prima istruzione di Streamlit)
+st.set_page_config(page_title="Insect Capture Prediction", page_icon=":beetle:", layout="wide")
+
 # Carica le variabili dal file .env
 load_dotenv("key.env")
 
 # Utilizza le variabili
 owm_api_key = os.getenv("OWM_API_KEY")
 model_path = os.getenv("MODEL_PATH")
-
-# Configurazione della pagina Streamlit (deve essere la prima istruzione di Streamlit)
-st.set_page_config(page_title="Insect Capture Prediction", page_icon=":beetle:", layout="wide")
 
 # Funzione per ottenere il meteo attuale
 def get_current_weather(city_name, owm_api_key):
