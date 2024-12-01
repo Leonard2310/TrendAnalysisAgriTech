@@ -4,8 +4,8 @@ import pandas as pd
 import numpy as np
 import tensorflow as tf
 from datetime import datetime, timedelta
-from streamlit_folium import st_folium
 import folium
+from streamlit_folium import st_folium
 from sklearn.preprocessing import StandardScaler
 from utils import load_lstm_model, create_lagged_features, get_city_suggestions, get_historical_weather_data, get_weather_symbol
 import plotly.express as px
