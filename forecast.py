@@ -10,7 +10,7 @@ from utils import load_lstm_model, create_lagged_features, get_city_suggestions,
 
 # Percorso del modello e API Key
 model_path = 'lstm_model.keras'
-owm_api_key = 'aeeebd2b3ac3430b6648e249d9861539'
+owm_api_key = ''
 
 # Funzione principale per il live forecasting
 def live_forecasting():
