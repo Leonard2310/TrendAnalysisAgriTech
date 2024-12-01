@@ -11,7 +11,7 @@ def train_graphs(folder_path):
     st.subheader("Forecasting Results")
     
     # Ottieni tutte le sottocartelle nella cartella principale
-    subfolders = [f.path for f in os.scandir(folder_path) if f.is_dir()]
+    subfolders = sorted([f.path for f in os.scandir(folder_path) if f.is_dir()])
     subfolder_names = [os.path.basename(f) for f in subfolders]
     
     # Crea un menu a tendina per selezionare la sottocartella
@@ -19,7 +19,7 @@ def train_graphs(folder_path):
     selected_folder = os.path.join(folder_path, selected_folder_name)
     
     # Ottieni tutti i file CSV nella sottocartella selezionata
-    csv_files = [f for f in os.listdir(selected_folder) if f.endswith('.csv')]
+    csv_files = sorted([f for f in os.listdir(selected_folder) if f.endswith('.csv')])
     
     for csv_file in csv_files:
         if 'results' in csv_file:
@@ -52,15 +52,16 @@ def train_graphs(folder_path):
             # Aggiungi forecast (test)
             fig.add_trace(go.Scatter(x=results.index, y=results['Forecast_Test'], mode='lines', name='Forecast (Test)', line=dict(color='green')))
 
-            # Aggiungi intervalli di confidenza
-            fig.add_trace(go.Scatter(
-                x=results.index.tolist() + results.index[::-1].tolist(),
-                y=results['Upper_CI'].tolist() + results['Lower_CI'][::-1].tolist(),
-                fill='toself',
-                fillcolor='rgba(0,255,0,0.2)',
-                line=dict(color='rgba(255,255,255,0)'),
-                name='Confidence Interval'
-            ))
+            # Aggiungi intervalli di confidenza se il nome del file non contiene "Decision Tree"
+            if 'DecisionTree' not in csv_file:
+                fig.add_trace(go.Scatter(
+                    x=results.index.tolist() + results.index[::-1].tolist(),
+                    y=results['Upper_CI'].tolist() + results['Lower_CI'][::-1].tolist(),
+                    fill='toself',
+                    fillcolor='rgba(0,255,0,0.2)',
+                    line=dict(color='rgba(255,255,255,0)'),
+                    name='Confidence Interval'
+                ))
 
             # Layout
             fig.update_layout(title=title,
