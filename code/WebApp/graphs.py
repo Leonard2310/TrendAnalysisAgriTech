@@ -3,9 +3,6 @@ import plotly.graph_objects as go
 import streamlit as st
 import os
 
-# Configurazione della pagina Streamlit (deve essere la prima istruzione di Streamlit)
-st.set_page_config(page_title="Models Graphs", page_icon=":chart_with_upwards_trend:", layout="wide")
-
 def train_graphs(folder_path):
     st.title(":chart_with_upwards_trend: Models Graphs")
     st.subheader("Forecasting Results")

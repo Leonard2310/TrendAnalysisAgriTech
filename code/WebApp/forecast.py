@@ -13,11 +13,8 @@ from dotenv import load_dotenv
 from graphs import train_graphs
 import os
 
-# Configurazione della pagina Streamlit (deve essere la prima istruzione di Streamlit)
-st.set_page_config(page_title="Insect Capture Prediction", page_icon=":beetle:", layout="wide")
-
 # Carica le variabili dal file .env
-load_dotenv("key.env")
+load_dotenv("keyDocker.env")
 
 # Utilizza le variabili
 owm_api_key = os.getenv("OWM_API_KEY")
