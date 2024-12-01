@@ -7,6 +7,8 @@ import pandas as pd
 import os
 from datetime import datetime, timedelta
 from sklearn.preprocessing import StandardScaler
+import folium
+from streamlit_folium import st_folium
 
 # Configurazione della pagina Streamlit (deve essere la prima istruzione di Streamlit)
 st.set_page_config(page_title="Insect Capture Prediction", page_icon=":beetle:", layout="wide")
@@ -15,9 +17,9 @@ st.set_page_config(page_title="Insect Capture Prediction", page_icon=":beetle:",
 tf.get_logger().setLevel('ERROR')
 
 # Percorso del modello LSTM salvato
-model_path = 'Inserisci il percorso del modello'
+model_path = 'path'
 
-# Funzione per ottenere dati meteorologici storici
+# Funzionet per ottenere dati meteorologici storici
 def get_historical_weather_data(lat, lon, start_date, end_date, api_key):
     weather_data = []
     date = start_date
@@ -29,7 +31,7 @@ def get_historical_weather_data(lat, lon, start_date, end_date, api_key):
             'lon': lon,
             'type': 'hour',
             'start': timestamp,
-            'end': timestamp + 86400,  # Fine giornata
+            'end': timestamp + 86400,  
             'appid': api_key
         }
         try:
@@ -68,6 +70,18 @@ def create_lagged_features(df, n_lags, target_col, exog_cols):
     lagged_df = lagged_df.dropna()
     return lagged_df
 
+# Funzione per suggerire città
+def get_city_suggestions(query, api_key):
+    url = "http://api.openweathermap.org/geo/1.0/direct"
+    params = {'q': query, 'limit': 5, 'appid': api_key}
+    response = requests.get(url, params=params)
+    if response.status_code == 200:
+        data = response.json()
+        suggestions = [f"{item['name']}, {item['country']}" for item in data]
+        return suggestions
+    else:
+        return []
+
 # Carica il modello LSTM
 model = load_lstm_model(model_path)
 if model is None:
@@ -78,106 +92,66 @@ def live_forecasting():
     st.title(":beetle: OpenBugsWeather")
     st.subheader("Live LSTM Insect Capture Forecasting")
 
-    # API Key di OpenWeatherMap
-    api_key = st.text_input("Inserisci la tua API Key OpenWeatherMap", type="password")
+    # Organizzazione in due colonne
+    col_inputs, col_map = st.columns([3, 2])
 
-    # Input della città
-    city = st.text_input("Inserisci il nome della città")
+    with col_inputs:
+        # API Key di OpenWeatherMap
+        api_key = st.text_input("Inserisci la tua API Key OpenWeatherMap", type="password")
 
-    # Input delle date
-    col1, col2 = st.columns(2)
-    with col1:
-        start_date = st.date_input("Data iniziale")
-    with col2:
-        end_date = st.date_input("Data finale")
-
-    if st.button("Ottieni previsioni catture insetti"):
-        if api_key and city and start_date and end_date:
-            if start_date > end_date:
-                st.error("La data iniziale deve essere precedente o uguale alla data finale.")
+        # Input della città con suggerimenti dinamici
+        city_input = st.text_input("Inserisci il nome della città")
+        if city_input:
+            suggestions = get_city_suggestions(city_input, api_key)
+            if suggestions:
+                city = st.selectbox("Seleziona la città:", suggestions)
             else:
-                # Barra di progressione
-                progress_bar = st.progress(0)
-                status_text = st.empty()
-                status_text.text("Inizio il recupero dei dati meteo...")
-
-                # Ottieni latitudine e longitudine della città
-                geocode_url = f"http://api.openweathermap.org/geo/1.0/direct"
-                params = {
-                    'q': city,
-                    'limit': 1,
-                    'appid': api_key
-                }
-                try:
-                    response = requests.get(geocode_url, params=params)
-                    response.raise_for_status()
-                    data = response.json()
-                    if data:
-                        lat = data[0]['lat']
-                        lon = data[0]['lon']
-                    else:
-                        st.error(f"Impossibile trovare la città {city}.")
-                        lat, lon = None, None
-                except requests.exceptions.RequestException as e:
-                    st.error(f"Errore di connessione: {e}")
-                    lat, lon = None, None
-
-                if lat is not None and lon is not None:
-                    # Aggiorna la barra di progresso
-                    status_text.text("Recupero dei dati meteo in corso...")
-                    progress_bar.progress(50)
-
-                    # Ottieni i dati meteorologici storici
-                    weather_data = get_historical_weather_data(lat, lon, start_date, end_date, api_key)
-                    if weather_data:
-                        progress_bar.progress(75)
-                        status_text.text("Previsione in corso...")
-
-                        # Prepara i dati per il modello
-                        df = pd.DataFrame(weather_data)
-                        df['no. of Adult males'] = 0  # Aggiungi una colonna fittizia per il target
-
-                        # Crea le feature laggate
-                        n_lags = 5
-                        exog_cols = ['temperature', 'humidity']
-                        lagged_df = create_lagged_features(df, n_lags=n_lags, target_col='no. of Adult males', exog_cols=exog_cols)
-
-                        # Prepara i dati di input
-                        variables = ['no. of Adult males'] + exog_cols
-                        timestep_cols = []
-                        for t in range(n_lags):
-                            lag = n_lags - t
-                            cols = [f'{var}_lag_{lag}' for var in variables]
-                            timestep_cols.append(cols)
-
-                        X_list = [lagged_df[cols].values for cols in timestep_cols]
-                        input_data = np.stack(X_list, axis=1)
-
-                        # Scala i dati di input
-                        scaler = StandardScaler()
-                        n_samples, n_timesteps, n_features = input_data.shape
-                        input_data_reshaped = input_data.reshape(-1, n_features)
-                        input_data_scaled = scaler.fit_transform(input_data_reshaped).reshape(n_samples, n_timesteps, n_features)
-
-                        # Effettua le previsioni
-                        predictions = model.predict(input_data_scaled)
-
-                        # Arrotonda le previsioni e convertili in numeri interi
-                        predictions = np.clip(predictions, 0, None).round().astype(int)
-
-                        # Aggiungi le previsioni al DataFrame
-                        lagged_df['predictions'] = predictions.flatten()
-
-                        # Visualizza il grafico delle previsioni giornaliere
-                        st.line_chart(lagged_df.set_index('date')['predictions'])
-                        progress_bar.progress(100)
-                        status_text.text("Operazione completata!")
-                    else:
-                        st.error("Impossibile ottenere i dati meteo storici.")
-                else:
-                    st.error("Impossibile determinare latitudine e longitudine per la città.")
+                city = city_input
+                st.write("Nessun suggerimento trovato. Utilizzando la città inserita.")
         else:
-            st.error("Per favore, inserisci tutti i campi richiesti.")
+            city = None
+
+        if city:
+            st.write(f"Hai selezionato: {city}")
+
+        # Input delle date
+        col1, col2 = st.columns(2)
+        with col1:
+            start_date = st.date_input("Data iniziale")
+        with col2:
+            end_date = st.date_input("Data finale")
+
+        # Bottone per avviare la previsione
+        if st.button("Ottieni previsioni catture insetti"):
+            st.write("Implementazione del modello di previsione...")
+            # Aggiungi qui il resto della logica per il modello
+
+    with col_map:
+        # Visualizzazione della mappa a destra
+        if city and api_key:
+            geocode_url = f"http://api.openweathermap.org/geo/1.0/direct"
+            params = {'q': city, 'limit': 1, 'appid': api_key}
+            try:
+                response = requests.get(geocode_url, params=params)
+                response.raise_for_status()
+                data = response.json()
+                if data:
+                    lat, lon = data[0]['lat'], data[0]['lon']
+                    city_map = folium.Map(location=[lat, lon], zoom_start=10)
+                    # Aggiungi il layer meteo di OpenWeatherMap
+                    owm_api_key = 'api key'  
+                    weather_tiles = f"https://tile.openweathermap.org/map/precipitation_new/{{z}}/{{x}}/{{y}}.png?appid={owm_api_key}"
+                    folium.TileLayer(
+                        tiles=weather_tiles,
+                        attr='OpenWeatherMap',
+                        name='Precipitazioni',
+                        overlay=True,
+                        control=True
+                    ).add_to(city_map)
+                    folium.Marker([lat, lon], tooltip=city).add_to(city_map)
+                    st_folium(city_map, width=400, height=300)
+            except:
+                st.write("Mappa non disponibile per questa città.")
 
 # Funzione per la visualizzazione dei grafici di addestramento dei modelli
 def training_graphs():
