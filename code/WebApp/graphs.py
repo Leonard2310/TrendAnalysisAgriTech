@@ -50,7 +50,7 @@ def train_graphs(folder_path):
             fig.add_trace(go.Scatter(x=results.index, y=results['Forecast_Test'], mode='lines', name='Forecast (Test)', line=dict(color='green')))
 
             # Aggiungi intervalli di confidenza se il nome del file non contiene "Decision Tree"
-            if 'DecisionTree' not in csv_file:
+            if all(keyword not in csv_file for keyword in ['DecisionTree', 'GradientBoosting', 'RandomForest']):
                 fig.add_trace(go.Scatter(
                     x=results.index.tolist() + results.index[::-1].tolist(),
                     y=results['Upper_CI'].tolist() + results['Lower_CI'][::-1].tolist(),

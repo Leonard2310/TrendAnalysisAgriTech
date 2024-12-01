@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from dotenv import load_dotenv
 
 # Carica le variabili dal file .env
-load_dotenv("keyDocker.env")
+load_dotenv("key.env")
 
 # Utilizza le variabili
 MODEL_PATH = os.getenv("MODEL_PATH")

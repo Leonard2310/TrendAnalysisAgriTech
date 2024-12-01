@@ -9,7 +9,7 @@ from forecast import live_forecasting
 from graphs import train_graphs
 
 # Carica le variabili dal file .env
-load_dotenv("keyDocker.env")
+load_dotenv("key.env")
 
 # Utilizza le variabili
 CSV_PATH = os.getenv("CSV_PATH")
@@ -20,16 +20,12 @@ if not CSV_PATH or not MODEL_PATH:
     st.error("Errore: le variabili CSV_PATH o MODEL_PATH non sono state caricate correttamente dal file .env.")
     st.stop()
 
-# Debugging - print variabili per verificare che siano caricate correttamente
-st.write(f"CSV_PATH: {CSV_PATH}")
-st.write(f"MODEL_PATH: {MODEL_PATH}")
-
 # Barra laterale per navigare tra le pagine
 st.sidebar.title("Navigazione")
 page = st.sidebar.radio("Scegli una pagina", ("Live Forecasting", "Grafici dei Modelli"))
 
 # Navigazione tra le pagine
 if page == "Live Forecasting":
-    live_forecasting(MODEL_PATH)
+    live_forecasting()
 elif page == "Grafici dei Modelli":
     train_graphs(CSV_PATH)

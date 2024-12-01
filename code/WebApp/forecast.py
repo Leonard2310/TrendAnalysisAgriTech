@@ -14,7 +14,7 @@ from graphs import train_graphs
 import os
 
 # Carica le variabili dal file .env
-load_dotenv("keyDocker.env")
+load_dotenv("key.env")
 
 # Utilizza le variabili
 owm_api_key = os.getenv("OWM_API_KEY")
