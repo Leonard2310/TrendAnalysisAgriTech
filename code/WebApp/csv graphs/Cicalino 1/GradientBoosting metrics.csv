@@ -1,5 +1,5 @@
 Metric,Value
 RMSE_Train,0.0
 MAE_Train,0.0
-RMSE_Test,0.5
-MAE_Test,0.25
+RMSE_Test,0.58
+MAE_Test,0.33
