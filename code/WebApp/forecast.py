@@ -10,6 +10,7 @@ from sklearn.preprocessing import StandardScaler
 from utils import load_lstm_model, create_lagged_features, get_city_suggestions, get_historical_weather_data, get_weather_symbol
 import plotly.express as px
 from dotenv import load_dotenv
+from graphs import train_graphs
 import os
 
 # Configurazione della pagina Streamlit (deve essere la prima istruzione di Streamlit)
@@ -219,13 +220,3 @@ def training_graphs():
 
     # Aggiungi i tuoi grafici qui (esempio per il grafico della perdita del modello)
     # st.line_chart(loss_values) 
-
-# Barra laterale per navigare tra le pagine
-st.sidebar.title("Navigazione")
-page = st.sidebar.radio("Scegli una pagina", ("Live Forecasting", "Grafici di Addestramento"))
-
-# Visualizza la pagina selezionata
-if page == "Live Forecasting":
-    live_forecasting()
-elif page == "Grafici di Addestramento":
-    training_graphs()
