@@ -12,10 +12,10 @@ CSV_PATH = os.getenv("CSV_PATH")
 
 # Barra laterale per navigare tra le pagine
 st.sidebar.title("Navigazione")
-page = st.sidebar.radio("Scegli una pagina", ("Live Forecasting", "Grafici di Addestramento"))
+page = st.sidebar.radio("Scegli una pagina", ("Live Forecasting", "Grafici dei Modelli"))
 
 # Navigazione tra le pagine
 if page == "Live Forecasting":
     live_forecasting()
-elif page == "Grafici di Addestramento":
+elif page == "Grafici dei Modelli":
     train_graphs(CSV_PATH)
