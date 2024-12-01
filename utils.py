@@ -5,14 +5,18 @@ from tensorflow import keras
 from sklearn.preprocessing import StandardScaler
 from datetime import datetime, timedelta
 
-# Funzione per caricare il modello
+# Percorso del modello LSTM salvato
+model_path = '/Users/l.catello/Library/Mobile Documents/com~apple~CloudDocs/Magistrale Ingegneria Informatica/Information Systems and Business Intelligence/Progetto/Homework 2 - Trend Analysis e Dashboard Streamlit/WebApp/lstm_model.keras'
+
+# Funzione per caricare il modello LSTM salvato
 @st.cache_resource
 def load_lstm_model(model_path):
     if not os.path.exists(model_path):
         return None
-    return keras.models.load_model(model_path)
+    model = keras.models.load_model(model_path)
+    return model
 
-# Funzione per creare feature laggate
+# Funzione per creare le feature laggate
 def create_lagged_features(df, n_lags, target_col, exog_cols):
     lagged_df = df.copy()
     for col in [target_col] + exog_cols:
@@ -21,30 +25,32 @@ def create_lagged_features(df, n_lags, target_col, exog_cols):
     lagged_df = lagged_df.dropna()
     return lagged_df
 
-# Funzione per ottenere suggerimenti di città
-def get_city_suggestions(query, api_key):
+# Funzione per suggerire città
+def get_city_suggestions(query, owm_api_key):
     url = "http://api.openweathermap.org/geo/1.0/direct"
-    params = {'q': query, 'limit': 5, 'appid': api_key}
+    params = {'q': query, 'limit': 5, 'appid': owm_api_key}
     response = requests.get(url, params=params)
     if response.status_code == 200:
         data = response.json()
-        return [f"{item['name']}, {item['country']}" for item in data]
-    return []
+        suggestions = [f"{item['name']}, {item['country']}" for item in data]
+        return suggestions
+    else:
+        return []
 
-# Funzione per ottenere dati meteo storici
-def get_historical_weather_data(lat, lon, start_date, end_date, api_key):
+# Funzionet per ottenere dati meteorologici storici
+def get_historical_weather_data(lat, lon, start_date, end_date, owm_api_key):
     weather_data = []
     date = start_date
     while date <= end_date:
         timestamp = int(datetime.combine(date, datetime.min.time()).timestamp())
-        url = "http://history.openweathermap.org/data/2.5/history/city"
+        url = f"http://history.openweathermap.org/data/2.5/history/city"
         params = {
             'lat': lat,
             'lon': lon,
             'type': 'hour',
             'start': timestamp,
-            'end': timestamp + 86400,
-            'appid': api_key
+            'end': timestamp + 86400,  
+            'appid': owm_api_key
         }
         try:
             response = requests.get(url, params=params)
@@ -56,12 +62,16 @@ def get_historical_weather_data(lat, lon, start_date, end_date, api_key):
                     'temperature': item['main']['temp'],
                     'humidity': item['main']['humidity']
                 })
-        except:
+        except requests.exceptions.RequestException as e:
+            st.error(f"Errore di connessione: {e}")
+            return None
+        except KeyError:
+            st.error("Errore nel parsing dei dati.")
             return None
         date += timedelta(days=1)
     return weather_data
 
-# Funzione per i simboli meteo
+# Funzione per mappare le condizioni meteo a simboli
 def get_weather_symbol(weather_id):
     if weather_id // 100 == 2:
         return '⛈️'  # Temporale
@@ -83,8 +93,3 @@ def get_weather_symbol(weather_id):
         return '☁️'  # Nuvoloso
     else:
         return '🌡️'  # Altro
-
-# Funzione per visualizzare grafici di training
-def training_graphs():
-    st.title("Grafici di Addestramento")
-    st.write("Visualizza i grafici di addestramento e validazione del modello.")

@@ -1,6 +1,5 @@
 import streamlit as st
 from forecast import live_forecasting
-from utils import training_graphs
 
 # Configurazione della pagina Streamlit
 st.set_page_config(page_title="Insect Capture Prediction", page_icon=":beetle:", layout="wide")
@@ -13,4 +12,4 @@ page = st.sidebar.radio("Scegli una pagina", ("Live Forecasting", "Grafici di Ad
 if page == "Live Forecasting":
     live_forecasting()
 elif page == "Grafici di Addestramento":
-    training_graphs()
+    st.title("Grafici di Addestramento")
