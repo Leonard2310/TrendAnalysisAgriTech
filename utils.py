@@ -4,12 +4,6 @@ import streamlit as st
 from tensorflow import keras
 from sklearn.preprocessing import StandardScaler
 from datetime import datetime, timedelta
-from dotenv import load_dotenv
-
-# Carica le variabili dal file .env
-load_dotenv("key.env")
-
-model_path = os.getenv("MODEL_PATH")
 
 # Funzione per caricare il modello LSTM salvato
 @st.cache_resource
