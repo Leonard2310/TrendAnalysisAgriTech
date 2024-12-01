@@ -20,6 +20,10 @@ if not CSV_PATH or not MODEL_PATH:
     st.error("Errore: le variabili CSV_PATH o MODEL_PATH non sono state caricate correttamente dal file .env.")
     st.stop()
 
+# Debugging - print variabili per verificare che siano caricate correttamente
+st.write(f"CSV_PATH: {CSV_PATH}")
+st.write(f"MODEL_PATH: {MODEL_PATH}")
+
 # Barra laterale per navigare tra le pagine
 st.sidebar.title("Navigazione")
 page = st.sidebar.radio("Scegli una pagina", ("Live Forecasting", "Grafici dei Modelli"))
