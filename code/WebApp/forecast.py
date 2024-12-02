@@ -13,13 +13,6 @@ from dotenv import load_dotenv
 from graphs import train_graphs
 import os
 
-# Carica le variabili dal file .env
-load_dotenv("key.env")
-
-# Utilizza le variabili
-owm_api_key = os.getenv("OWM_API_KEY")
-model_path = os.getenv("MODEL_PATH")
-
 # Funzione per ottenere il meteo attuale
 def get_current_weather(city_name, owm_api_key):
     url = 'http://api.openweathermap.org/data/2.5/weather'
@@ -35,18 +28,18 @@ def get_current_weather(city_name, owm_api_key):
     else:
         return None
 
-# Imposta il logger di TensorFlow per mostrare solo errori
-tf.get_logger().setLevel('ERROR')
-
-# Carica il modello LSTM
-model = load_lstm_model(model_path)
-if model is None:
-    st.error(f"Il file del modello non esiste: {model_path}")
-
 # Funzione per la previsione delle catture insetti
-def live_forecasting():
+def live_forecasting(model_path, owm_api_key):
     st.title(":beetle: OpenBugsWeather")
     st.subheader("Live LSTM Insect Capture Forecasting")
+    
+    # Imposta il logger di TensorFlow per mostrare solo errori
+    tf.get_logger().setLevel('ERROR')
+
+    # Carica il modello LSTM
+    model = load_lstm_model(model_path)
+    if model is None:
+        st.error(f"Il file del modello non esiste: {model_path}")
 
     # Organizzazione in due colonne
     col_inputs, col_map = st.columns([3, 2])

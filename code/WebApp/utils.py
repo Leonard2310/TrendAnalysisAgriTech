@@ -6,12 +6,6 @@ from sklearn.preprocessing import StandardScaler
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 
-# Carica le variabili dal file .env
-load_dotenv("key.env")
-
-# Utilizza le variabili
-MODEL_PATH = os.getenv("MODEL_PATH")
-
 # Funzione per caricare il modello LSTM salvato
 @st.cache_resource
 def load_lstm_model(model_path):
