@@ -7,26 +7,24 @@ def train_graphs(folder_path):
     st.title(":chart_with_upwards_trend: Models Graphs")
     st.subheader("Forecasting Results")
     
-    # Ottieni tutte le sottocartelle nella cartella principale
+    # Sottocartelle per i vari csv
     subfolders = sorted([f.path for f in os.scandir(folder_path) if f.is_dir()])
     subfolder_names = [os.path.basename(f) for f in subfolders]
     
-    # Crea un menu a tendina per selezionare la sottocartella
+    # Creazione di un menu a tendina per selezionare la sottocartella
     selected_folder_name = st.selectbox("Seleziona la cartella", subfolder_names)
     selected_folder = os.path.join(folder_path, selected_folder_name)
     
-    # Ottieni tutti i file CSV nella sottocartella selezionata
     csv_files = sorted([f for f in os.listdir(selected_folder) if f.endswith('.csv')])
     
     for csv_file in csv_files:
         if 'results' in csv_file:
-            # Leggi il CSV dei risultati
             results = pd.read_csv(os.path.join(selected_folder, csv_file), index_col=0, parse_dates=True)
 
-            # Inizializza il titolo del grafico con la prima parola del nome del file
+            # Inizializzazionw del titolo del grafico con la prima parola del nome del file
             title = csv_file.split()[0]
 
-            # Cerca il file metrics corrispondente
+            # Ricerca il file metrics corrispondente
             metrics_file = csv_file.replace('results', 'metrics')
             if metrics_file in csv_files:
                 metrics = pd.read_csv(os.path.join(selected_folder, metrics_file))
@@ -40,16 +38,16 @@ def train_graphs(folder_path):
 
             fig = go.Figure()
 
-            # Aggiungi valori reali
+            # Aggiunta dei valori reali
             fig.add_trace(go.Scatter(x=results.index, y=results['Actual'], mode='lines', name='Actual', line=dict(color='blue')))
 
-            # Aggiungi fitted values (train)
+            # Aggiunta dei fitted values (train)
             fig.add_trace(go.Scatter(x=results.index, y=results['Fitted_Train'], mode='lines', name='Fitted (Train)', line=dict(color='red', dash='dot')))
 
-            # Aggiungi forecast (test)
+            # Aggiunta dei forecast (test)
             fig.add_trace(go.Scatter(x=results.index, y=results['Forecast_Test'], mode='lines', name='Forecast (Test)', line=dict(color='green')))
 
-            # Aggiungi intervalli di confidenza se il nome del file non contiene "Decision Tree"
+            # Aggiunta degli intervalli di confidenza
             if all(keyword not in csv_file for keyword in ['DecisionTree', 'GradientBoosting', 'RandomForest']):
                 fig.add_trace(go.Scatter(
                     x=results.index.tolist() + results.index[::-1].tolist(),
@@ -66,5 +64,4 @@ def train_graphs(folder_path):
                               yaxis_title="Values",
                               legend=dict(orientation="h"))
 
-            # Mostra il grafico
             st.plotly_chart(fig)

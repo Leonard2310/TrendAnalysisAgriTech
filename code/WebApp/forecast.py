@@ -33,7 +33,6 @@ def live_forecasting(model_path, owm_api_key):
     st.title(":beetle: OpenBugsWeather")
     st.subheader("Live LSTM Insect Capture Forecasting")
     
-    # Imposta il logger di TensorFlow per mostrare solo errori
     tf.get_logger().setLevel('ERROR')
 
     # Carica il modello LSTM
@@ -183,10 +182,10 @@ def live_forecasting(model_path, owm_api_key):
             except:
                 st.write("Mappa non disponibile per questa città.")
             
-        # Ottieni il meteo attuale
+        # Meteo attuale
         weather = get_current_weather(city, owm_api_key)
 
-        # Visualizza i dati meteo con st.metric sotto la mappa
+        # Visualizzazione dei dati meteo con st.metric sotto la mappa
         if weather:
             temperature = weather['main']['temp']
             umidity = weather['main']['humidity']

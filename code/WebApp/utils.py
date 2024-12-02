@@ -35,7 +35,7 @@ def get_city_suggestions(query, owm_api_key):
     else:
         return []
 
-# Funzionet per ottenere dati meteorologici storici
+# Funzione per ottenere dati meteorologici storici
 def get_historical_weather_data(lat, lon, start_date, end_date, owm_api_key):
     weather_data = []
     date = start_date
