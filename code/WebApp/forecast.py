@@ -202,11 +202,3 @@ def live_forecasting(model_path, owm_api_key):
                 st.metric(label="Condizioni", value=f"{symbol}")
         else:
             st.write("Impossibile ottenere i dati meteo per la città specificata.")
-
-# Funzione per la visualizzazione dei grafici di addestramento dei modelli
-def training_graphs():
-    st.title("Grafici di Addestramento dei Modelli")
-    st.write("Qui puoi visualizzare i grafici di addestramento, validazione e analisi dei dati.")
-
-    # Aggiungi i tuoi grafici qui (esempio per il grafico della perdita del modello)
-    # st.line_chart(loss_values) 
