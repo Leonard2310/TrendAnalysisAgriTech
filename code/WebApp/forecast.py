@@ -105,6 +105,7 @@ def live_forecasting(model_path, owm_api_key):
 
                         # Ottieni i dati meteorologici storici
                         weather_data = get_historical_weather_data(lat, lon, start_date, end_date, owm_api_key)
+
                         if weather_data:
                             progress_bar.progress(75)
                             status_text.text("Previsione in corso...")

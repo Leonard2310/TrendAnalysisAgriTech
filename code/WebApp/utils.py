@@ -35,10 +35,10 @@ def get_city_suggestions(query, owm_api_key):
     else:
         return []
 
-# Funzione per ottenere dati meteorologici storici
 def get_historical_weather_data(lat, lon, start_date, end_date, owm_api_key):
     weather_data = []
     date = start_date
+    
     while date <= end_date:
         timestamp = int(datetime.combine(date, datetime.min.time()).timestamp())
         url = f"http://history.openweathermap.org/data/2.5/history/city"
@@ -47,26 +47,39 @@ def get_historical_weather_data(lat, lon, start_date, end_date, owm_api_key):
             'lon': lon,
             'type': 'hour',
             'start': timestamp,
-            'end': timestamp + 86400,  
+            'end': timestamp + 86400,  # Periodo di 24 ore
+            'units': 'metric',
             'appid': owm_api_key
         }
         try:
             response = requests.get(url, params=params)
             response.raise_for_status()
             data = response.json()
+            
+            # Organizza dati orari in un dizionario per aggregare
+            daily_temps = []
+            daily_humidity = []
+            
             for item in data['list']:
+                daily_temps.append(item['main']['temp'])
+                daily_humidity.append(item['main']['humidity'])
+            
+            # Calcola aggregati giornalieri
+            if daily_temps and daily_humidity:
                 weather_data.append({
-                    'date': datetime.utcfromtimestamp(item['dt']),
-                    'temperature': item['main']['temp'],
-                    'humidity': item['main']['humidity']
-                })
+                    'date': date,
+                    'temperature': sum(daily_temps) / len(daily_temps),
+                    'humidity': sum(daily_humidity) / len(daily_humidity),
+                })        
         except requests.exceptions.RequestException as e:
-            st.error(f"Errore di connessione: {e}")
+            print(f"Errore di connessione: {e}")
             return None
         except KeyError:
-            st.error("Errore nel parsing dei dati.")
+            print("Errore nel parsing dei dati.")
             return None
+
         date += timedelta(days=1)
+    
     return weather_data
 
 # Funzione per mappare le condizioni meteo a simboli
