@@ -12,7 +12,7 @@ from forecast import live_forecasting
 from graphs import train_graphs
 
 # Caricamento delle variabili dal file .env
-load_dotenv("key.env")
+load_dotenv("keyDocker.env")
 
 API_KEY = os.getenv("OWM_API_KEY")
 CSV_PATH = os.getenv("CSV_PATH")
