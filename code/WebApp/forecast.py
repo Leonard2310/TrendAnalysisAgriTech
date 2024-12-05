@@ -71,7 +71,7 @@ def live_forecasting(model_path, owm_api_key):
                 "Seleziona una data, il forecast coprirà l'intero mese seguente:",
                 today - datetime.timedelta(days=31),  # Valore predefinito
                 max_value=today - datetime.timedelta(days=31),  # Limite massimo: oggi - 31 giorni
-                format="MM.DD.YYYY",
+                format="DD.MM.YYYY",
             )
 
             # Calcolo automatico della data di fine
@@ -79,7 +79,7 @@ def live_forecasting(model_path, owm_api_key):
         with col2:
             # Mostra la data finale calcolata
             st.write(" ")
-            st.info(f"Forsecast fino al {end_date.strftime('%m.%d.%Y')}")
+            st.info(f"Forsecast fino al {end_date.strftime('%d.%m.%Y')}")
 
         if st.button("Forecast Bugs"):
             if owm_api_key and city and start_date and end_date:
@@ -193,7 +193,7 @@ def live_forecasting(model_path, owm_api_key):
                         control=True
                     ).add_to(city_map)
                     folium.Marker([lat, lon], tooltip=city).add_to(city_map)
-                    st_folium(city_map, width=400, height=300)
+                    st_folium(city_map, height=500)
             except:
                 st.write("Mappa non disponibile per questa città.")
             
