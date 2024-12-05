@@ -3,13 +3,16 @@ from dotenv import load_dotenv
 import os
 
 # Configurazione della pagina Streamlit
-st.set_page_config(page_title="Insect Capture Prediction", page_icon=":beetle:", layout="wide")
+st.set_page_config(page_title="Insect Capture Prediction",
+                   page_icon=":beetle:",
+                   layout="wide",
+                   initial_sidebar_state="collapsed" )
 
 from forecast import live_forecasting
 from graphs import train_graphs
 
 # Caricamento delle variabili dal file .env
-load_dotenv("keyDocker.env")
+load_dotenv("key.env")
 
 API_KEY = os.getenv("OWM_API_KEY")
 CSV_PATH = os.getenv("CSV_PATH")

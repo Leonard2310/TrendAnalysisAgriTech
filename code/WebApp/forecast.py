@@ -3,7 +3,7 @@ import requests
 import pandas as pd
 import numpy as np
 import tensorflow as tf
-from datetime import datetime, timedelta
+import datetime
 import folium
 from streamlit_folium import st_folium
 from sklearn.preprocessing import StandardScaler
@@ -45,29 +45,43 @@ def live_forecasting(model_path, owm_api_key):
 
     with col_inputs:
 
+        col_city1, col_city2 = st.columns(2)
+
         # Input della città con suggerimenti dinamici
-        city_input = st.text_input("Inserisci il nome della città", value="Imola")
-        if city_input:
-            suggestions = get_city_suggestions(city_input, owm_api_key)
-            if suggestions:
-                city = st.selectbox("Seleziona la città:", suggestions, index=0)
+        with col_city1:
+            city_input = st.text_input("Inserisci il nome della città", value="Imola")
+        with col_city2:
+            if city_input:
+                suggestions = get_city_suggestions(city_input, owm_api_key)
+                if suggestions:
+                    city = st.selectbox("Seleziona la città:", suggestions, index=0)
+                else:
+                    city = city_input
+                    st.write("Nessun suggerimento trovato. Utilizzando la città inserita.")
             else:
-                city = city_input
-                st.write("Nessun suggerimento trovato. Utilizzando la città inserita.")
-        else:
-            city = None
+                city = None        
 
-        if city:
-            st.write(f"Hai selezionato: {city}")
+        # Data di oggi
+        today = datetime.date.today()
 
-        # Input delle date
         col1, col2 = st.columns(2)
         with col1:
-            start_date = st.date_input("Data iniziale")
-        with col2:
-            end_date = st.date_input("Data finale")
+            # Impostazione della data di inizio
+            start_date = st.date_input(
+                "Seleziona una data, il forecast coprirà l'intero mese seguente:",
+                today - datetime.timedelta(days=31),  # Valore predefinito
+                max_value=today - datetime.timedelta(days=31),  # Limite massimo: oggi - 31 giorni
+                format="MM.DD.YYYY",
+            )
 
-        if st.button("Ottieni previsioni catture insetti"):
+            # Calcolo automatico della data di fine
+            end_date = start_date + datetime.timedelta(days=31)
+        with col2:
+            # Mostra la data finale calcolata
+            st.write(" ")
+            st.info(f"Forsecast fino al {end_date.strftime('%m.%d.%Y')}")
+
+        if st.button("Forecast Bugs"):
             if owm_api_key and city and start_date and end_date:
                 if start_date > end_date:
                     st.error("La data iniziale deve essere precedente o uguale alla data finale.")
@@ -149,7 +163,7 @@ def live_forecasting(model_path, owm_api_key):
                             fig = px.line(lagged_df, x='date', y='predictions', title='Previsioni')
                             st.plotly_chart(fig)
                             progress_bar.progress(100)
-                            status_text.text("Operazione completata!")
+                            status_text.text("")
                         else:
                             st.error("Impossibile ottenere i dati meteo storici.")
                     else:
