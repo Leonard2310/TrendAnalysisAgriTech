@@ -153,11 +153,6 @@ In conclusion, the study's results suggest that complex models, such as MLP, ten
 
 ---
 
-This README explains the use of machine learning techniques and models, including decision trees, ensemble methods, and deep learning, to analyze and predict insect capture data.
-
-
----
-
 ## Streamlit Dashboard
 
 ### Dashboard Features
