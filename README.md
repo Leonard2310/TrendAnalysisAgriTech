@@ -199,3 +199,15 @@ Ensure that Docker is correctly installed on your system. You can download and i
 
    The application will be accessible at:
    [http://localhost:8501](http://localhost:8501)
+
+---
+
+## Authors
+
+- [Leonardo Catello](https://github.com/Leonard2310)
+- [Lorenzo Manco](https://github.com/Rasbon99)
+- [Carmine Grosso]([https://github.com/httpix3l])
+
+## License
+
+This project is licensed under the [GNU General Public License v3.0](LICENSE). Refer to the LICENSE file for more information.
