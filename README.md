@@ -206,7 +206,7 @@ Ensure that Docker is correctly installed on your system. You can download and i
 
 - [Leonardo Catello](https://github.com/Leonard2310)
 - [Lorenzo Manco](https://github.com/Rasbon99)
-- [Carmine Grosso]([https://github.com/httpix3l])
+- [Carmine Grosso](https://github.com/httpix3l)
 
 ## License
 
